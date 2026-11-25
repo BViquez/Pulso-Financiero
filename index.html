@@ -82,6 +82,20 @@ h2{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.1
 .src a{color:var(--navy);font-weight:600}
 .empty{color:var(--muted);font-size:14px;padding:8px 0}
 
+.oblig{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ob{background:var(--surface);display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px}
+.ob-d{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--gold);border-radius:6px;padding:4px 0;line-height:1.1}
+.ob-d b{font-size:20px;color:var(--navy);font-variant-numeric:tabular-nums}
+.ob-d span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold-ink);font-weight:700}
+.ob-t{font-weight:700;font-size:15px}
+.ob-x{font-size:13.5px;color:var(--muted)}
+.ob-q{font-size:12px;color:var(--muted);margin-top:2px}
+.ob-q a{color:var(--navy);font-weight:600}
+.ob-f{font-size:12px;font-weight:700;white-space:nowrap;border-radius:4px;padding:2px 8px;background:var(--lo-bg);color:var(--lo-fg)}
+.ob-f.pronto{background:var(--hi-bg);color:var(--hi-fg)}
+.ob-f.cerca{background:var(--md-bg);color:var(--md-fg)}
+@media (max-width:560px){.ob{grid-template-columns:56px minmax(0,1fr)}.ob-f{grid-column:2;justify-self:start}}
+
 
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:grid;gap:4px}
 
@@ -102,6 +116,11 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   <section aria-labelledby="h-kpi">
     <div class="sec-h"><h2 id="h-kpi">Indicadores clave</h2><small id="kpi-note"></small></div>
     <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section aria-labelledby="h-obl" id="sec-obl">
+    <div class="sec-h"><h2 id="h-obl">Calendario tributario</h2><small>Próximos vencimientos · si cae en día inhábil, se corre al siguiente día hábil</small></div>
+    <div class="oblig" id="oblig"></div>
   </section>
 
   <section class="filters" aria-label="Filtros">
@@ -421,6 +440,48 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
      }
     ]
    }
+  ],
+  "obligaciones": [
+   {
+    "vence": "2026-12-15",
+    "titulo": "IVA y retenciones de noviembre",
+    "detalle": "Declaración y pago del IVA, retenciones en la fuente (salarios, remesas al exterior, dividendos, intereses) y demás impuestos mensuales del periodo de noviembre.",
+    "quien": "Contribuyentes inscritos en IVA y agentes de retención",
+    "fuente": "Calendario fiscal (PwC)",
+    "url": "https://www.pwc.com/ia/es/Tax-legal-news/calendario-fiscal-2026/costa-rica/Diciembre.html"
+   },
+   {
+    "vence": "2026-12-31",
+    "titulo": "Tercer pago parcial del impuesto sobre las utilidades",
+    "detalle": "Último pago parcial de renta del periodo fiscal 2026 (enero a diciembre).",
+    "quien": "Personas jurídicas y físicas con actividad lucrativa obligadas a pagos parciales",
+    "fuente": "Calendario fiscal (PwC)",
+    "url": "https://www.pwc.com/ia/es/Tax-legal-news/calendario-fiscal-2026/costa-rica/Diciembre.html"
+   },
+   {
+    "vence": "2026-12-31",
+    "titulo": "Marchamo 2027",
+    "detalle": "Pago del derecho de circulación y el seguro obligatorio (SOA) de cada vehículo; después del 31 hay multas y recargos.",
+    "quien": "Dueños de vehículos y flotillas",
+    "fuente": "El Observador",
+    "url": "https://observador.cr/este-lunes-sale-al-cobro-el-marchamo-2027-lo-que-debe-saber-sobre-el-pago-y-la-nueva-etiqueta-digital/"
+   },
+   {
+    "vence": "2027-01-15",
+    "titulo": "IVA y retenciones de diciembre",
+    "detalle": "Declaración y pago mensual del periodo de diciembre; vence dentro de los primeros 15 días naturales del mes siguiente.",
+    "quien": "Contribuyentes inscritos en IVA y agentes de retención",
+    "fuente": "Calendario fiscal (PwC)",
+    "url": "https://www.pwc.com/ia/es/Tax-legal-news/calendario-fiscal-2026/costa-rica/Diciembre.html"
+   },
+   {
+    "vence": "2027-01-25",
+    "titulo": "Declaración informativa D-270 del año 2026",
+    "detalle": "Resumen de compras y pagos sin comprobante electrónico (intereses y comisiones bancarias, pagos a instituciones públicas), en una sola declaración anual. Desde 2027 pasa a ser mensual.",
+    "quien": "Todas las empresas",
+    "fuente": "El Observador",
+    "url": "https://observador.cr/colegio-de-contadores-advierte-que-el-plazo-para-presentar-declaracion-270-vence-en-enero-2027/"
+   }
   ]
  }
 ]</script>
@@ -499,7 +560,25 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   }
 
 
-  function render(){ renderHead(); renderNews(); }
+  function renderObl(){
+    var sec=document.getElementById('sec-obl'), list=ed.obligaciones||[];
+    var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    var hoy=new Date(); hoy.setHours(0,0,0,0);
+    var items=list.map(function(o){var p=o.vence.split('-');return {o:o,d:new Date(+p[0],+p[1]-1,+p[2])};})
+      .filter(function(x){return x.d>=hoy;}).sort(function(a,b){return a.d-b.d;});
+    if(!items.length){sec.hidden=true;return;}
+    document.getElementById('oblig').innerHTML=items.map(function(x){
+      var dias=Math.round((x.d-hoy)/86400000), o=x.o;
+      var lab=dias===0?'Vence hoy':dias===1?'Vence mañana':'Faltan '+dias+' días';
+      var cls=dias<=7?'pronto':dias<=15?'cerca':'';
+      return '<div class="ob"><div class="ob-d"><b>'+x.d.getDate()+'</b><span>'+MES[x.d.getMonth()]+'</span></div>'+
+        '<div><div class="ob-t">'+esc(o.titulo)+'</div><div class="ob-x">'+esc(o.detalle)+'</div>'+
+        '<div class="ob-q">'+esc(o.quien)+' · <a href="'+esc(o.url)+'" target="_blank" rel="noopener">'+esc(o.fuente)+' ↗</a></div></div>'+
+        '<span class="ob-f '+cls+'">'+lab+'</span></div>';
+    }).join('');
+  }
+
+  function render(){ renderHead(); renderObl(); renderNews(); }
   render();
 })();
 </script>
